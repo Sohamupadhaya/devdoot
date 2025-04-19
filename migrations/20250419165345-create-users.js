@@ -1,12 +1,14 @@
 'use strict';
+const { DataTypes } = require('sequelize');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('users', {
       id: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.UUID,
+        defaultValue: uuidv4,
         primaryKey: true,
-        autoIncrement: true,
         allowNull: false,
       },
       name: {
@@ -19,12 +21,12 @@ module.exports = {
         allowNull: false,
       },
       phone: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.STRING,
         unique: true,
         allowNull: false,
       },
       dob: {
-        type: Sequelize.DATEONLY,
+        type: Sequelize.STRING,
         allowNull: false,
       },
       address: {
@@ -48,12 +50,12 @@ module.exports = {
         allowNull: false,
       },
       createdAt: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updatedAt: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       }
