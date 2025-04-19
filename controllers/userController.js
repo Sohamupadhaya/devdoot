@@ -9,6 +9,16 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const createUser = async (req, res) => {
+  try {
+    userService.createUser(req,res)
+  }
+catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllUsers,
+  createUser,
 };
