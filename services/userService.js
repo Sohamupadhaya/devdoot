@@ -2,13 +2,16 @@
   const User = require("../models/user");
   const { validateNotEmpty } = require("../validator/userValidator");
   const bcrypt = require("bcrypt");
+  const sendOTP = require('../utils/mailer');
 
   const getAllUsers = async () => {
     return await User.findAll();
   };
-
   const createUser = async (req, res) => {
     try {
+      const generateOTP = () => {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+      };
       const { isValid, emptyFields } = validateNotEmpty(req.body);
       const phoneRegex = /^\d{10}$/;
       const dobRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
@@ -84,8 +87,17 @@
         gender:trimmedData.gender,
         password:hashedPassword
       });
+      if (!user) {
+        return res
+        .status(400)
+        .json({ error: "Something went wrong while creating user" });
+      }
+
+      const otp = generateOTP();
+      await sendOTP(trimmedData.email, otp, trimmedData.name);
+
       const { password: _, ...userWithoutPassword } = user.toJSON();
-      return res.status(200).json({ data: userWithoutPassword });
+      return res.status(200).json({ message:'user registered',data: userWithoutPassword });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
