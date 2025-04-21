@@ -1,4 +1,9 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
+
+const templatePath = path.join(__dirname, 'templates', 'otpTemplate.html');
+const rawTemplate = fs.readFileSync(templatePath, 'utf8');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -10,20 +15,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const otpEmailTemplate = (otp, name) => {
-  return `
-    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
-      <div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <h2 style="color: #333;">Hello, ${name}</h2>
-        <p>Your One-Time Password (OTP) is:</p>
-        <h1 style="color: #4CAF50; font-size: 36px; letter-spacing: 4px;">${otp}</h1>
-        <p>This OTP will expire in 10 minutes.</p>
-        <p>If you did not request this, you can safely ignore this email.</p>
-        <hr />
-        <p style="font-size: 12px; color: #aaa;">&copy; ${new Date().getFullYear()} Dev-Doot. All rights reserved.</p>
-      </div>
-    </div>
-  `;
+const renderTemplate = (otp, name) => {
+  return rawTemplate
+    .replace('{{name}}', name)
+    .replace('{{otp}}', otp)
+    .replace('{{year}}', new Date().getFullYear());
 };
 
 const sendOTP = async (to, otp, name) => {
@@ -31,7 +27,7 @@ const sendOTP = async (to, otp, name) => {
     from: `"Dev-Doot" <${process.env.SMTP_USER}>`,
     to,
     subject: 'Your OTP Code',
-    html: otpEmailTemplate(otp, name),
+    html: renderTemplate(otp, name),
   };
 
   try {

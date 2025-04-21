@@ -18,7 +18,24 @@ catch (error) {
   }
 };
 
+const verifyUser = async(req,res) =>{
+  try {
+    userService.verifyUser(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+const reSendOtp = async(req,res) =>{
+  try {
+    userService.reSendOtp(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
 module.exports = {
   getAllUsers,
   createUser,
+  verifyUser,
+  reSendOtp
 };

@@ -17,7 +17,7 @@ app.use('/users', userRoutes);
 (async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: false });
     console.log('✅ Database connected and synced');
     
     app.listen(PORT, () => {

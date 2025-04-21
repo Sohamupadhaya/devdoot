@@ -1,109 +1,171 @@
-  const { where } = require("sequelize");
-  const User = require("../models/user");
-  const { validateNotEmpty } = require("../validator/userValidator");
-  const bcrypt = require("bcrypt");
-  const sendOTP = require('../utils/mailer');
+const { where } = require('sequelize');
+const User = require('../models/user');
+const { userSchema, verifySchema, resendOTPSchema } = require('../validator/userValidator');
+const bcrypt = require('bcrypt');
+const sendOTP = require('../utils/mailer');
 
-  const getAllUsers = async () => {
-    return await User.findAll();
-  };
-  const createUser = async (req, res) => {
-    try {
-      const generateOTP = () => {
-        return Math.floor(100000 + Math.random() * 900000).toString();
-      };
-      const { isValid, emptyFields } = validateNotEmpty(req.body);
-      const phoneRegex = /^\d{10}$/;
-      const dobRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const getAllUsers = async () => {
+	return await User.findAll();
+};
+const createUser = async (req, res) => {
+	try {
+		const generateOTP = () => {
+			return Math.floor(100000 + Math.random() * 900000).toString();
+		};
 
-      if (!isValid) {
-        const errors = emptyFields.map((field) => `${field} is not provided`);
-        return res.status(400).json({ errors });
-      }
-      const {
-        name,
-        email,
-        phone,
-        dob,
-        address,
-        gender,
-        password,
-        confirmPassword,
-      } = req.body;
+		const result = userSchema.safeParse(req.body);
+		if (!result.success) {
+			const errors = result.error.errors.map((err) => `${err.path[0]}: ${err.message}`);
+			return res.status(400).json({ errors });
+		}
 
-      const trimmedData = {
-        name: name?.trim(),
-        email: email?.trim(),
-        phone: phone?.trim(),
-        dob: dob?.trim(),
-        address: address?.trim(),
-        gender: gender?.trim().toLowerCase(),
-      };
+		const data = result.data;
 
-      const existEmail = await User.findAll({
-        where: {
-          email: email,
-        },
-      });
-      if (existEmail.length > 0) {
-        return res.status(400).json({ error: "Email already exists" });
-      }
-      const existPhone = await User.findAll({
-        where: {
-          phone: trimmedData.phone,
-        },
-      });
-      if (existPhone.length > 0) {
-        return res.status(400).json({ error: "Phone-number already exists" });
-      }
-      if (password !== confirmPassword) {
-        return res
-          .status(400)
-          .json({ error: "Password and confirm password do not match" });
-      }
-      if (!phoneRegex.test(trimmedData.phone)) {
-        return res
-          .status(400)
-          .json({ error: "Phone-number must be of 10 digits" });
-      }
-      if (trimmedData.gender !== "male" && trimmedData.gender !== "female") {
-        return res.status(400).json({ error: "Gender should be male or female" });
-      }
-      if (!dobRegex.test(trimmedData.dob)) {
-        return res
-          .status(400)
-          .json({ error: "DOB must be in YYYY-MM-DD format" });
-      }
+		const trimmedData = {
+			name: data.name?.trim(),
+			email: data.email?.trim(),
+			phone: data.phone?.trim(),
+			dob: data.dob?.trim(),
+			address: data.address?.trim(),
+			gender: data.gender?.trim().toLowerCase(),
+		};
 
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+		const existEmail = await User.findOne({
+			where: {
+				email: trimmedData.email,
+			},
+		});
+		if (existEmail) {
+			return res.status(400).json({ error: 'Email already exists' });
+		}
+		existEmail;
+		const existPhone = await User.findOne({
+			where: {
+				phone: trimmedData.phone,
+			},
+		});
 
-      const user = await User.create({
-        name:trimmedData.name,
-        email:trimmedData.email,
-        phone:trimmedData.phone,
-        dob:trimmedData.dob,
-        address:trimmedData.address,
-        gender:trimmedData.gender,
-        password:hashedPassword
-      });
-      if (!user) {
-        return res
-        .status(400)
-        .json({ error: "Something went wrong while creating user" });
-      }
+		if (existPhone) {
+			return res.status(400).json({ error: 'Phone-number already exists' });
+		}
+		if (data.password !== data.confirmPassword) {
+			return res.status(400).json({ error: 'Password and confirm password do not match' });
+		}
 
-      const otp = generateOTP();
-      await sendOTP(trimmedData.email, otp, trimmedData.name);
+		const saltRounds = 10;
+		const hashedPassword = await bcrypt.hash(data.password, saltRounds);
 
-      const { password: _, ...userWithoutPassword } = user.toJSON();
-      return res.status(200).json({ message:'user registered',data: userWithoutPassword });
-    } catch (error) {
-      return res.status(500).json({ error: error.message });
-    }
-  };
+		const user = await User.create({
+			name: trimmedData.name,
+			email: trimmedData.email,
+			phone: trimmedData.phone,
+			dob: trimmedData.dob,
+			address: trimmedData.address,
+			gender: trimmedData.gender,
+			password: hashedPassword,
+		});
+		if (!user) {
+			return res.status(400).json({ error: 'Something went wrong while creating user' });
+		}
 
-  module.exports = {
-    getAllUsers,
-    createUser,
-  };
+		const otp = generateOTP();
+		user.token = otp;
+		await user.save();
+		await sendOTP(trimmedData.email, otp, trimmedData.name);
+
+		const { password: _, ...userWithoutPassword } = user.toJSON();
+		return res.status(200).json({ message: 'user registered', data: userWithoutPassword });
+	} catch (error) {
+		return res.status(500).json({ error: error.message });
+	}
+};
+
+const verifyUser = async (req, res) => {
+	try {
+		const result = verifySchema.safeParse(req.body);
+		if (!result.success) {
+			const errors = result.error.errors.map((err) => `${err.path[0]}: ${err.message}`);
+			return res.status(400).json({ errors });
+		}
+
+		const data = result.data;
+
+		const trimmedData = {
+			email: data.email?.trim(),
+			otp: data.otp?.trim(),
+		};
+
+		const existEmail = await User.findOne({
+			where: {
+				email: trimmedData.email,
+			},
+		});
+		if (!existEmail) {
+			return res.status(400).json({ error: 'Email Not found' });
+		}
+		if (!existEmail.token || existEmail.verified === 1) {
+			return res.status(400).json({ error: 'user is already verified' });
+		}
+		if (!existEmail.token) {
+			return res.status(400).json({ error: 'No otp is generated' });
+		}
+
+		if (existEmail.token !== trimmedData.otp) {
+			return res.status(400).json({ error: 'Invalid OTP' });
+		}
+
+		existEmail.verified = true;
+		existEmail.token = null;
+		await existEmail.save();
+
+		return res.status(200).json({ message: 'user verify successfully' });
+	} catch (error) {
+		return res.status(500).json({ error: error.message });
+	}
+};
+
+const reSendOtp = async (req, res) => {
+	try {
+		const result = resendOTPSchema.safeParse(req.body);
+		if (!result.success) {
+			const errors = result.error.errors.map((err) => `${err.path[0]}: ${err.message}`);
+			return res.status(400).json({ errors });
+		}
+		const generateOTP = () => {
+			return Math.floor(100000 + Math.random() * 900000).toString();
+		};
+
+		const data = result.data;
+
+		const trimmedData = {
+			email: data.email?.trim(),
+			otp: data.otp?.trim(),
+		};
+
+		const existEmail = await User.findOne({
+			where: { email: trimmedData.email },
+		});
+
+		if (!existEmail) {
+			return res.status(400).json({ error: 'Email not found' });
+		}
+		if (existEmail.verified) {
+			return res.status(400).json({ error: 'User is already verified, OTP cannot be resent' });
+		}
+
+		const newOtp = generateOTP();
+
+		existEmail.token = newOtp;
+		await existEmail.save();
+    return res.status(200).json({ message: 'OTP resent successfully'});
+	} catch (error) {
+		return res.status(500).json({ error: error.message });
+	}
+};
+
+module.exports = {
+	getAllUsers,
+	createUser,
+	verifyUser,
+	reSendOtp,
+};
