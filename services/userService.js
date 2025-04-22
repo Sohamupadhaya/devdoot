@@ -1,12 +1,18 @@
-const { where } = require('sequelize');
 const User = require('../models/user');
 const { userSchema, verifySchema, resendOTPSchema } = require('../validator/userValidator');
 const bcrypt = require('bcrypt');
 const sendOTP = require('../utils/mailer');
 const {generateAccessToken,generateJwtToken } = require('../config/jwt');
 
-const getAllUsers = async () => {
-	return await User.findAll();
+const getAllUsers = async (req, res) => {
+	try {
+		const users = await User.findAll({
+			attributes: { exclude: ['password', 'token'] },
+		});
+		return res.status(200).json({ message: 'Users data', data: users });
+	} catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 };
 const createUser = async (req, res) => {
 	try {
@@ -74,6 +80,8 @@ const createUser = async (req, res) => {
 		await user.save();
 		await sendOTP(trimmedData.email, otp, trimmedData.name);
 
+		const { password, token, ...userDatas } = user.toJSON();
+		return res.status(200).json({ message: 'user registered', data: userDatas });
 
 		const { password: _, ...userWithoutPassword } = user.toJSON();
 		return res.status(200).json({ message: 'user registered', data: userWithoutPassword });
@@ -159,12 +167,30 @@ const reSendOtp = async (req, res) => {
 
 		existEmail.token = newOtp;
 		await existEmail.save();
-    return res.status(200).json({ message: 'OTP resent successfully'});
+		return res.status(200).json({ message: 'OTP resent successfully' });
 	} catch (error) {
 		return res.status(500).json({ error: error.message });
 	}
 };
 
+const getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    if (!userId) {
+      res.status(400).json({error: "user id is not provided in parameters"})
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      res.status(400).json({error: "user with this id is not found"})
+    }
+
+    return res.status(200).json({ user });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }}
 const loginUser = async (req, res) => {
 	try {
 		if(!req.body.email || req.body.email == null) {
@@ -221,6 +247,7 @@ module.exports = {
 	createUser,
 	verifyUser,
 	reSendOtp,
+  getUserById,
 	loginUser,
 	getUserDetails
-};
+}
