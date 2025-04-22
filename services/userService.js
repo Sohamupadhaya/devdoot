@@ -3,6 +3,7 @@ const User = require('../models/user');
 const { userSchema, verifySchema, resendOTPSchema } = require('../validator/userValidator');
 const bcrypt = require('bcrypt');
 const sendOTP = require('../utils/mailer');
+const {generateAccessToken,generateJwtToken } = require('../config/jwt');
 
 const getAllUsers = async () => {
 	return await User.findAll();
@@ -72,6 +73,7 @@ const createUser = async (req, res) => {
 		user.token = otp;
 		await user.save();
 		await sendOTP(trimmedData.email, otp, trimmedData.name);
+
 
 		const { password: _, ...userWithoutPassword } = user.toJSON();
 		return res.status(200).json({ message: 'user registered', data: userWithoutPassword });
@@ -163,9 +165,62 @@ const reSendOtp = async (req, res) => {
 	}
 };
 
+const loginUser = async (req, res) => {
+	try {
+		if(!req.body.email || req.body.email == null) {
+			return req.user
+		}
+
+		const accessToken =  generateAccessToken({ id: req.user.id });
+
+		const isExistUser = await User.findOne({
+			where:{
+				id: req.user.id,
+				email: req.user.email,
+			}
+		})
+		if(isExistUser){
+			const  response = {
+				status: 200,
+				message:"User logged in successfully",
+				data:{
+					token: accessToken,
+					id: isExistUser.id,
+					name: isExistUser.name,
+					email: isExistUser.email,
+					
+				}
+			}
+			return res.status(200).json(response);
+		}
+
+	} catch (error) {
+		console.error('Error during login:', error);
+		return res.status(500).json({ error: error.message });
+	}
+}
+
+const getUserDetails = async (req, res) => {
+	try {
+		const userId = req.user.id;
+		const user = await User.findByPk(userId)
+		if (!user) {
+			return res.status(404).json({ error: 'User not found' });
+		}
+		const { password, token, ...userWithoutPassword } = user.toJSON();
+		return res.status(200).json({ 
+			data: userWithoutPassword, 
+			accessToken: req.headers.authorization });
+	} catch (error) {
+		return res.status(500).json({ error: error.message });
+	}
+};
+
 module.exports = {
 	getAllUsers,
 	createUser,
 	verifyUser,
 	reSendOtp,
+	loginUser,
+	getUserDetails
 };
