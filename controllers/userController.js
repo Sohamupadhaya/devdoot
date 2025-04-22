@@ -42,10 +42,31 @@ const getUserById = async(req,res) =>{
   }
 }
 
+const loginUser = async(req,res) =>{
+  try {
+    userService.loginUser(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+
+const getUserDetails = async(req,res) =>{
+  try {
+    userService.getUserDetails(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+
+
 module.exports = {
   getAllUsers,
   createUser,
   verifyUser,
   reSendOtp,
-  getUserById
+  getUserById,
+  loginUser,
+  getUserDetails
 };
