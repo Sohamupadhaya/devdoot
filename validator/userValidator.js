@@ -31,8 +31,21 @@ const resendOTPSchema = z.object({
   email: z.string().email("Invalid email"),
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().email("Invalid name").trim().optional(),
+  phone: z.string().trim().regex(phoneRegex, "Phone must be 10 digits").optional(),
+  gender: z
+    .string()
+    .transform((val) => val.toLowerCase())
+    .refine((val) => val === "male" || val === "female", {
+      message: "Gender must be either MALE or FEMALE",
+    }).optional(),
+  address: z.string().trim().min(1, "Address is required").optional(),
+  dob: z.string().trim().regex(dobRegex, "DOB must be in YYYY-MM-DD format").optional(),
+});
 module.exports = {
   userSchema,
   verifySchema,
-  resendOTPSchema
+  resendOTPSchema,
+  updateProfileSchema
 };

@@ -3,6 +3,7 @@ const {
   userSchema,
   verifySchema,
   resendOTPSchema,
+  updateProfileSchema,
 } = require("../validator/userValidator");
 const bcrypt = require("bcrypt");
 const sendOTP = require("../utils/mailer");
@@ -211,6 +212,7 @@ const getUserById = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
 const loginUser = async (req, res) => {
   try {
     if (!req.body.email || req.body.email == null) {
@@ -263,15 +265,52 @@ const getUserDetails = async (req, res) => {
 
 const editUser = async (req, res) => {
   try {
-	const user = req.user;
-	if (!user) {
-		return res.status(400).json({ error: "User not found" });
-	}
-	const CheckUser = await User.findByPk(user.id);
-	if (!CheckUser) {
-		return res.status(400).json({ error: "This user is not register with us" });
-	}
-	
+    const user = req.user;
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    const result = updateProfileSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.errors.map(
+        (err) => `${err.path[0]}: ${err.message}`
+      );
+      return res.status(400).json({ errors });
+    }
+    const data = result.data;
+
+    const trimmedData = {
+      name: data.name?.trim(),
+      phone: data.phone?.trim(),
+      dob: data.dob?.trim(),
+      address: data.address?.trim(),
+      gender: data.gender?.trim(),
+    };
+
+    const CheckUser = await User.findByPk(user.id);
+    if (!CheckUser) {
+      return res
+        .status(400)
+        .json({ error: "This user is not register with us" });
+    }
+
+    const updateUser = await CheckUser.update(
+      {
+        name: trimmedData.name || CheckUser.name,
+        phone: trimmedData.phone || CheckUser.phone,
+        dob: trimmedData.dob || CheckUser.dob,
+        address: trimmedData.address || CheckUser.address,
+        gender: trimmedData.gender || CheckUser.gender,
+      },
+      { where: { id: user.id } }
+    );
+
+    if (!updateUser) {
+      return res
+        .status(400)
+        .json({ error: "Something went wrong while updating user" });
+    }
+
+    return res.status(200).json({ success: "data updated successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
