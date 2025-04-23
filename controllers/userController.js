@@ -50,10 +50,17 @@ const loginUser = async(req,res) =>{
   }
 }
 
-
 const getUserDetails = async(req,res) =>{
   try {
     userService.getUserDetails(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+const editUser = async(req,res) =>{
+  try {
+    userService.editUser(req,res)
   } catch (error) {
     res.status(500).json({error: error.message})
   }
@@ -68,5 +75,6 @@ module.exports = {
   reSendOtp,
   getUserById,
   loginUser,
-  getUserDetails
+  getUserDetails,
+  editUser
 };

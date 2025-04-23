@@ -11,5 +11,6 @@ router.get('/getUserById/:id',userController.getUserById)
 router.post('/reotp',userController.reSendOtp)
 router.post('/login',authenticateLocal, userController.loginUser)
 router.get('/user-details',authenticateJWT, userController.getUserDetails)
+router.put('/edit-user',authenticateJWT,userController.editUser)
 
 module.exports = router;
