@@ -32,7 +32,7 @@ const resendOTPSchema = z.object({
 });
 
 const updateProfileSchema = z.object({
-  name: z.string().email("Invalid name").trim().optional(),
+  name: z.string().trim().optional(),
   phone: z.string().trim().regex(phoneRegex, "Phone must be 10 digits").optional(),
   gender: z
     .string()
