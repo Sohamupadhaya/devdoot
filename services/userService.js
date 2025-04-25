@@ -8,6 +8,7 @@ const {
 const bcrypt = require("bcrypt");
 const sendOTP = require("../utils/mailer");
 const { generateAccessToken, generateJwtToken } = require("../config/jwt");
+const { updateProfile } = require("../controllers/userController");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -316,6 +317,10 @@ const editUser = async (req, res) => {
   }
 };
 
+const updateProfile = async(req, res)=>{
+  
+}
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -325,4 +330,5 @@ module.exports = {
   loginUser,
   getUserDetails,
   editUser,
+  updateProfile
 };
