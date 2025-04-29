@@ -43,9 +43,32 @@ const updateProfileSchema = z.object({
   address: z.string().trim().min(1, "Address is required").optional(),
   dob: z.string().trim().regex(dobRegex, "DOB must be in YYYY-MM-DD format").optional(),
 });
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+}).strict();
+
+const uploadProfileSchema = z.object({
+  photo: z
+    .array(
+      z.object({
+        fieldname: z.string(),
+        originalname: z.string(),
+        encoding: z.string(),
+        mimetype: z.string().regex(/image\/(jpeg|jpg|png|gif)/, "Invalid file type"),
+        size: z.number().max(20 * 1024 * 1024, "File size exceeds 20MB"),
+        path: z.string(),
+      })
+    )
+    .optional(),
+});
+
 module.exports = {
   userSchema,
   verifySchema,
   resendOTPSchema,
-  updateProfileSchema
+  updateProfileSchema,
+  loginSchema,
+  uploadProfileSchema
 };
