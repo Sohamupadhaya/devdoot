@@ -9,7 +9,6 @@ const {
 const bcrypt = require("bcrypt");
 const sendOTP = require("../utils/mailer");
 const { generateAccessToken, generateJwtToken } = require("../config/jwt");
-const { updateProfile } = require("../controllers/userController");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
