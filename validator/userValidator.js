@@ -49,10 +49,26 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 }).strict();
 
+const uploadProfileSchema = z.object({
+  photo: z
+    .array(
+      z.object({
+        fieldname: z.string(),
+        originalname: z.string(),
+        encoding: z.string(),
+        mimetype: z.string().regex(/image\/(jpeg|jpg|png|gif)/, "Invalid file type"),
+        size: z.number().max(20 * 1024 * 1024, "File size exceeds 20MB"),
+        path: z.string(),
+      })
+    )
+    .optional(),
+});
+
 module.exports = {
   userSchema,
   verifySchema,
   resendOTPSchema,
   updateProfileSchema,
-  loginSchema
+  loginSchema,
+  uploadProfileSchema
 };

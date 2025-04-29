@@ -66,9 +66,9 @@ const editUser = async(req,res) =>{
   }
 }
 
-const updateProfile = async (req, res) => {
+const uploadProfile = async (req, res) => {
   try {
-    userService.updateProfile(req, res);  
+    userService.uploadProfile(req, res);  
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -84,5 +84,5 @@ module.exports = {
   loginUser,
   getUserDetails,
   editUser,
-  updateProfile,
+  uploadProfile,
 };

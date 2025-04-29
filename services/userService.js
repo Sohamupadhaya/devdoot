@@ -4,11 +4,15 @@ const {
   verifySchema,
   resendOTPSchema,
   updateProfileSchema,
+  uploadProfileSchema,
 } = require("../validator/userValidator");
 const bcrypt = require("bcrypt");
 const sendOTP = require("../utils/mailer");
 const { generateAccessToken, generateJwtToken } = require("../config/jwt");
 const { updateProfile } = require("../controllers/userController");
+const fs = require("fs");
+const path = require("path");
+require("dotenv").config();
 
 const getAllUsers = async (req, res) => {
   try {
@@ -317,10 +321,67 @@ const editUser = async (req, res) => {
   }
 };
 
-const updateProfile = async(req, res)=>{
-  
-}
+const uploadProfile = async (req, res) => {
+  try {
+    uploadProfileSchema.parse(req.files);
 
+    const id = req.user.id;
+    let user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let newPhoto;
+    if (req.files && req.files.photo && req.files.photo[0]) {
+      newPhoto = process.env.URL + "/" + req.files.photo[0].path.replace(/\\/g, "/");
+
+      if (user.photo && user.photo !== process.env.URL + "/" + req.files.photo[0].path.replace(/\\/g, "/")) {
+        const oldPhotoFilename = path.basename(user.photo);
+        const oldPhotoPath = path.join(__dirname, "..", "uploads", "profile", oldPhotoFilename);
+
+        if (fs.existsSync(oldPhotoPath)) {
+          fs.unlinkSync(oldPhotoPath, (err) => {
+            if (err) {
+              console.error(`Error deleting file "${oldPhotoFilename}": ${err.message}`);
+            }
+          });
+        }
+      }
+
+      try {
+        const photoPath = path.join(__dirname, "..", "uploads", "profile");
+
+        // Dynamically import imagemin and its plugins
+        const imagemin = (await import("imagemin")).default;
+        const imageminMozjpeg = (await import("imagemin-mozjpeg")).default;
+        const imageminPngquant = (await import("imagemin-pngquant")).default;
+
+        const files = await imagemin([req.files.photo[0].path], {
+          destination: photoPath,
+          plugins: [
+            imageminMozjpeg({ quality: 20 }),
+            imageminPngquant({ quality: [0.5, 0.5] }),
+          ],
+        });
+        newPhoto = process.env.URL + "/" + files[0].sourcePath;
+      } catch (error) {
+        console.error("Imagemin Error:", error);
+      }
+    }
+
+    if (newPhoto) user.photo = newPhoto;
+
+    const updatedProfile = await user.save();
+    if (updatedProfile) {
+      return res.status(200).json({ message: "Profile uploaded successfully!" });
+    } else {
+      return res.status(400).json({ error: "Failed", message: "Updating profile failed" });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error!", message: "Error updating user info" });
+  }
+};
 module.exports = {
   getAllUsers,
   createUser,
@@ -330,5 +391,5 @@ module.exports = {
   loginUser,
   getUserDetails,
   editUser,
-  updateProfile
+  uploadProfile
 };

@@ -1,10 +1,10 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const userRoutes = require('./routes/userRoutes');
-const sequelize = require('./config/database');
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const userRoutes = require("./routes/userRoutes");
+const sequelize = require("./config/database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const corsOptions = {
-  origin: '*',
+  origin: "*",
 };
 
 app.use("/uploads", cors(corsOptions), express.static("uploads"));
@@ -44,32 +44,33 @@ app.use((req, res, next) => {
   next();
 });
 
-
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
-    Devdoot:"Welcome, Server is Working!"
+    Devdoot: "Welcome, Server is Working!",
   });
 });
 
-app.get('*', (req, res)=>{
-  return res.status(404).json({
-    status: false,
-    message: "Route not found !",
-  });
-})
+app.use("/users", userRoutes);
 
-app.use('/users', userRoutes);
+// Catch-all route should be last
+// app.get("*", (req, res) => {
+//   return res.status(404).json({
+//     status: false,
+//     message: "Route not found !",
+//   });
+// });
 
 (async () => {
   try {
     await sequelize.authenticate();
     await sequelize.sync({ alter: false });
-    console.log('✅ Database connected and synced');
-    
+    console.log("✅ Database connected and synced");
+
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.log('Unable to connect to the database:', err);
+    console.log("Unable to connect to the database:", err);
   }
 })();
+
