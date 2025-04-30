@@ -230,8 +230,12 @@ const loginUser = async (req, res) => {
         id: req.user.id,
         email: req.user.email,
       },
-    });
+    })
+
     if (isExistUser) {
+      if(isExistUser.verified === false){
+        return res.status(400).json({ error: "Bad Request", message:"User is not verified" });
+      }
       const response = {
         status: 200,
         message: "User logged in successfully",
