@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const User = require('../models/user'); 
 require ('dotenv').config();
+const { loginSchema } = require('../validator/userValidator');
 
 passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -95,7 +96,17 @@ passport.use('jwt', new JwtStrategy({
         })(req, res, next); 
     }
 
+    const validateLogin = (req, res, next) => {
+        const validationResult = loginSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errorMessages = validationResult.error.errors.map((err) => err.message);
+          return res.status(400).json({ status: 400, message: errorMessages.join(", ") });
+        }
+        next();
+      };
+
     module.exports ={
         authenticateLocal: passport.authenticate('local', { session: false }),
         authenticateJWT: authenticateJWT,
+        validateLogin: validateLogin,
     }
