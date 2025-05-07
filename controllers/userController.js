@@ -65,7 +65,6 @@ const editUser = async(req,res) =>{
     res.status(500).json({error: error.message})
   }
 }
-
 const uploadProfile = async (req, res) => {
   try {
     userService.uploadProfile(req, res);  
@@ -74,6 +73,29 @@ const uploadProfile = async (req, res) => {
   }
 }
 
+const updatePassword = async(req,res) =>{
+  try {
+    userService.updatePassword(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+const email = async(req,res) =>{
+  try {
+    userService.email(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }}
+
+
+const resetPassword = async(req,res) =>{
+  try {
+    userService.resetPassword(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
 
 module.exports = {
   getAllUsers,
@@ -84,5 +106,8 @@ module.exports = {
   loginUser,
   getUserDetails,
   editUser,
+  updatePassword,
+  email,
+  resetPassword,
   uploadProfile,
 };

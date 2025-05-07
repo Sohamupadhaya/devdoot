@@ -4,6 +4,7 @@ const {
   verifySchema,
   resendOTPSchema,
   updateProfileSchema,
+  resetPasswordSchema,
   uploadProfileSchema,
 } = require("../validator/userValidator");
 const bcrypt = require("bcrypt");
@@ -324,6 +325,118 @@ const editUser = async (req, res) => {
   }
 };
 
+const updatePassword = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ error: "New password and confirm password do not match" });
+    }
+
+    const CheckUser = await User.findByPk(user.id);
+    if (!CheckUser) {
+      return res
+        .status(400)
+        .json({ error: "This user is not register with us" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, CheckUser.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Old password is incorrect" });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await CheckUser.update(
+      { password: hashedPassword },
+      { where: { id: user.id } }
+    );
+
+    return res.status(200).json({ success: "password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const email = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.token = otp;
+    await user.save();
+
+    await sendOTP(email, otp, user.name);
+
+    return res.status(200).json({ message: "OTP sent to your email" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const result = resetPasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const errors = result.error.errors.map(
+        (err) => `${err.path[0]}: ${err.message}`
+      );
+      return res.status(400).json({ errors });
+    }
+
+    const data = result.data;
+
+    const trimmedData = {
+      email: data.email?.trim(),
+      password: data.password?.trim(),
+      confirmPassword: data.confirmPassword?.trim(),
+    };
+    const { email, password } = trimmedData;
+
+    const user = await User.findOne({ where: {email} });
+    console.log(user);
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    if (user.token) {
+      return res.status(400).json({ error: "first verify otp than change password" });
+    }
+
+    await user.update(
+      { password: hashedPassword},
+      { where: { id: user.id } }
+    );
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+
 const uploadProfile = async (req, res) => {
   try {
     uploadProfileSchema.parse(req.files);
@@ -394,5 +507,8 @@ module.exports = {
   loginUser,
   getUserDetails,
   editUser,
+  updatePassword,
+  resetPassword,
+  email,
   uploadProfile
 };

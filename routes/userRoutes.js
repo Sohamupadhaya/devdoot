@@ -12,6 +12,9 @@ router.get('/getUserById/:id',userController.getUserById)
 router.post('/login',validateLogin,authenticateLocal, userController.loginUser)
 router.get('/user-details',authenticateJWT, userController.getUserDetails)
 router.put('/edit-user',authenticateJWT,userController.editUser)
+router.put('/update-password',authenticateJWT,userController.updatePassword)
+router.post('/email',userController.email)
+router.put('/reset-password',userController.resetPassword)
 router.post ('/upload-profile', authenticateJWT, uploadProfileImages, userController.uploadProfile);
 
 module.exports = router;
