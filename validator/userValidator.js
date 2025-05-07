@@ -43,9 +43,22 @@ const updateProfileSchema = z.object({
   address: z.string().trim().min(1, "Address is required").optional(),
   dob: z.string().trim().regex(dobRegex, "DOB must be in YYYY-MM-DD format").optional(),
 });
+
+const resetPasswordSchema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+  
+
 module.exports = {
   userSchema,
   verifySchema,
   resendOTPSchema,
-  updateProfileSchema
+  updateProfileSchema,
+  resetPasswordSchema
 };

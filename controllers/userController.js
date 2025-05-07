@@ -66,7 +66,29 @@ const editUser = async(req,res) =>{
   }
 }
 
+const updatePassword = async(req,res) =>{
+  try {
+    userService.updatePassword(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
 
+const email = async(req,res) =>{
+  try {
+    userService.email(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+const resetPassword = async(req,res) =>{
+  try {
+    userService.resetPassword(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
 
 module.exports = {
   getAllUsers,
@@ -76,5 +98,8 @@ module.exports = {
   getUserById,
   loginUser,
   getUserDetails,
-  editUser
+  editUser,
+  updatePassword,
+  email,
+  resetPassword
 };

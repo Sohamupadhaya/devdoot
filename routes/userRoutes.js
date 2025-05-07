@@ -12,5 +12,8 @@ router.post('/reotp',userController.reSendOtp)
 router.post('/login',authenticateLocal, userController.loginUser)
 router.get('/user-details',authenticateJWT, userController.getUserDetails)
 router.put('/edit-user',authenticateJWT,userController.editUser)
+router.put('/update-password',authenticateJWT,userController.updatePassword)
+router.post('/email',userController.email)
+router.put('/reset-password',userController.resetPassword)
 
 module.exports = router;
