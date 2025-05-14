@@ -319,7 +319,7 @@ const editUser = async (req, res) => {
         .json({ error: "Something went wrong while updating user" });
     }
 
-    return res.status(200).json({ success: "data updated successfully" });
+    return res.status(200).json({ data:updateUser, success: "data updated successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
