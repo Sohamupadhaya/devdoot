@@ -47,6 +47,10 @@ const Kundali = sequelize.define('Kundali', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  kundaliPdf: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   userId: {
     type: DataTypes.UUID,
     allowNull: false,

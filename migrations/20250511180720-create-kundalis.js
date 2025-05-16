@@ -47,6 +47,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      kundaliPdf: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       userId: {
         type: DataTypes.UUID,
         allowNull: false,
