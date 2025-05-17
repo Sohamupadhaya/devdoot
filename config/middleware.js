@@ -30,6 +30,15 @@ passport.use(new LocalStrategy(
             if (!user) {
                 return done(null, false, { message: 'User not found' });
             }
+
+            if(user && !user.password){
+                var response = {
+                    status: 400,
+                    error: 'Bad Request',
+                    message: 'You have to login with google or reset your password',
+                };
+                return done (null, false, response);
+            }
             bcrypt.compare(password, user.password, (err, isMatch) => {
                 if (err) {
                     return done(err);

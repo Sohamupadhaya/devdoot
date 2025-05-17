@@ -1,8 +1,9 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
+const User = require('./user');
 
-const User = sequelize.define('User', {
+const Kundali = sequelize.define('Kundali', {
   id: {
     type: DataTypes.UUID,
     defaultValue: uuidv4,
@@ -13,29 +14,24 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  email: {
+  gender: {
     type: DataTypes.STRING,
     unique: true,
-    allowNull: false,
-  },
-  phone: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  dob: {
-    type: DataTypes.STRING,
     allowNull: false,
   },
   address: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  gender: {
-    type: DataTypes.ENUM('male', 'female'),
+  dob: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
-  verified: {
+  time: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  flag: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
@@ -43,33 +39,31 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  password: {
+  latitude: {
     type: DataTypes.STRING,
+    allowNull: true,
+  },
+  longitude: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  kundaliPdf: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  userId: {
+    type: DataTypes.UUID,
     allowNull: false,
-  },
-  photo: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  googleId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    unique: false,
-  },
-  googleRefreshToken: {
-    type: DataTypes.STRING,
-    allowNull: true,
+    references: {
+      model: User,
+      key: 'id',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   },
 }, {
-  tableName: 'users',
+  tableName: 'kundalis',
   timestamps: true,
 });
-User.associate = (models) => {
-  User.hasMany(models.Kundali, {
-    foreignKey: 'userId',
-    as: 'kundalis',
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  });
-};
-module.exports = User;
+
+module.exports = Kundali;
