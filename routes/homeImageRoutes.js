@@ -3,7 +3,7 @@ const router = express.Router();
 const homeImageController = require('../controllers/homeImageController');
 const { authenticateJWT } = require('../config/middleware');
 
-router.get('/kundalis/',authenticateJWT,homeImageController.homeImages);
-router.get('/kundali-by-id/:id',authenticateJWT,homeImageController.homeImageById);
+router.get('/home-images/',authenticateJWT,homeImageController.homeImages);
+router.get('/home-images-by-id/:id',authenticateJWT,homeImageController.homeImageById);
 
 module.exports = router;
