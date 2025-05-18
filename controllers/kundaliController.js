@@ -26,9 +26,18 @@ catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+const getKundaliById = async (req, res) => {
+  try {
+    kundaliService.getKundaliById(req,res)
+  }
+catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 module.exports = {
     createKundali,
     kundaliById,
-    viewKundali
+    viewKundali,
+    getKundaliById
   };

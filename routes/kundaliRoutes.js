@@ -6,5 +6,6 @@ const { authenticateJWT } = require('../config/middleware');
 router.post('/create-kundali',authenticateJWT,kundaliController.createKundali);
 router.get('/kundali-by-user/',authenticateJWT,kundaliController.kundaliById);
 router.get('/kundali-pdf/:id',authenticateJWT,kundaliController.viewKundali);
+router.get('/kundali-by-id/:id',authenticateJWT,kundaliController.getKundaliById);
 
 module.exports = router;

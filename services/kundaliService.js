@@ -118,8 +118,28 @@ const viewKundali = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+const getKundaliById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "Kundali ID is required" });
+    }
+
+    const kundaliData = await kundali.findByPk(id);
+
+    if (!kundaliData) {
+      return res.status(400).json({ message: "Kundali not found" });
+    }
+
+    return res.status(200).json(kundaliData);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
 module.exports = {
   createKundali,
   kundaliById,
   viewKundali,
+  getKundaliById
 };
