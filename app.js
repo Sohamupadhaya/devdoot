@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
 const kundaliRoutes = require("./routes/kundaliRoutes");
 const homeImages = require("./routes/homeImageRoutes");
+const eventRoutes = require("./routes/eventRoutes");
 const sequelize = require("./config/database");
 
 const app = express();
@@ -55,6 +56,7 @@ app.get("/", (req, res) => {
 app.use("/users", userRoutes);
 app.use("/kundadlis", kundaliRoutes);
 app.use("/homeImages", homeImages);
+app.use("/events", eventRoutes);
 
 // Catch-all route should be last
 // app.get("*", (req, res) => {
