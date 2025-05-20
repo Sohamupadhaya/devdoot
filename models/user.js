@@ -51,6 +51,15 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  // googleId: {
+  //   type: DataTypes.STRING,
+  //   allowNull: true,
+  //   unique: false,
+  // },
+  // googleRefreshToken: {
+  //   type: DataTypes.STRING,
+  //   allowNull: true,
+  // },
 }, {
   tableName: 'users',
   timestamps: true,

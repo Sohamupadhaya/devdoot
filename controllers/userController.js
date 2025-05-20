@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const authService = require('../services/authService')
 
 const getAllUsers = async (req, res) => {
   try {
@@ -97,6 +98,31 @@ const resetPassword = async(req,res) =>{
   }
 }
 
+const googleLogin = async(req, res) =>{
+  try {
+    authService.googleLogin(req, res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+const googleLoginUserRegistration= async(req, res)=>{
+  try {
+    authService.googleLoginUserRegistration(req,res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+  }
+}
+
+const googleLoginAddGoogleAccount= async(req, res)=>{
+  try {
+    authService.googleLoginAddGoogleAccount(req, res)
+  } catch (error) {
+    res.status(500).json({error: error.message})
+    
+  }
+}
+
 module.exports = {
   getAllUsers,
   createUser,
@@ -110,4 +136,7 @@ module.exports = {
   email,
   resetPassword,
   uploadProfile,
+  googleLogin,
+  googleLoginUserRegistration,
+  googleLoginAddGoogleAccount
 };
