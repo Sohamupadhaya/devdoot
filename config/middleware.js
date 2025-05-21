@@ -65,7 +65,7 @@ function authenticateLocalWithMessage(req, res, next) {
             return res.status(401).json({
                 status: 401,
                 error: 'Unauthorized',
-                message: 'User not found!, Please, signup to continue.',
+                message: 'Invalid email or password!',
             });
         }
         req.user = user;
