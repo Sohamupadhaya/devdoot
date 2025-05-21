@@ -25,11 +25,13 @@ passport.use(new LocalStrategy(
             if (!email || email == null) {
                 return done(null, false, { message: 'Email is required' });
             }
+            console.log('email:', email);
 
             var user = await User.findOne({ where: { email } });
             if (!user) {
                 return done(null, false, { message: 'User not found' });
-            }
+            }                                                                                                                                                     
+
 
             if(user && !user.password){
                 var response = {
@@ -55,6 +57,21 @@ passport.use(new LocalStrategy(
     }
 
 ))
+
+function authenticateLocalWithMessage(req, res, next) {
+    passport.authenticate('local', { session: false }, (err, user, info) => {
+        if (err) return next(err);
+        if (!user) {
+            return res.status(401).json({
+                status: 401,
+                error: 'Unauthorized',
+                message: 'User not found!, Please, signup to continue.',
+            });
+        }
+        req.user = user;
+        next();
+    })(req, res, next);
+}
 
 
 passport.use('jwt', new JwtStrategy({
@@ -118,4 +135,5 @@ passport.use('jwt', new JwtStrategy({
         authenticateLocal: passport.authenticate('local', { session: false }),
         authenticateJWT: authenticateJWT,
         validateLogin: validateLogin,
+        authenticateLocalWithMessage: authenticateLocalWithMessage,
     }

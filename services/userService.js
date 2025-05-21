@@ -13,6 +13,7 @@ const { generateAccessToken, generateJwtToken } = require("../config/jwt");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
+const cloudinary = require("../utils/cloudinary");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -223,6 +224,7 @@ const loginUser = async (req, res) => {
     if (!req.body.email || req.body.email == null) {
       return req.user;
     }
+    consolez.log(req.user)
 
     const accessToken = generateAccessToken({ id: req.user.id });
 
@@ -438,7 +440,13 @@ const resetPassword = async (req, res) => {
 
 const uploadProfile = async (req, res) => {
   try {
-    uploadProfileSchema.parse(req.files);
+    if(!req.files || req.files === undefined){
+      return res.status(400).json({ error: "Bad Request", message:"Photo not found!" });
+    }
+    if (req.files && req.files.photo) {
+      uploadProfileSchema.parse(req.files);
+    }
+    
 
     const id = req.user.id;
     let user = await User.findByPk(id);
@@ -448,40 +456,30 @@ const uploadProfile = async (req, res) => {
 
     let newPhoto;
     if (req.files && req.files.photo && req.files.photo[0]) {
-      newPhoto = process.env.URL + "/" + req.files.photo[0].path.replace(/\\/g, "/");
+      const localPath = req.files.photo[0].path;
 
-      if (user.photo && user.photo !== process.env.URL + "/" + req.files.photo[0].path.replace(/\\/g, "/")) {
-        const oldPhotoFilename = path.basename(user.photo);
-        const oldPhotoPath = path.join(__dirname, "..", "uploads", "profile", oldPhotoFilename);
+      const result = await cloudinary.uploader.upload(localPath, {
+        folder: "profile_pics",
+        public_id: `user_${id}_${Date.now()}`,
+        resource_type: "image",
+      });
 
-        if (fs.existsSync(oldPhotoPath)) {
-          fs.unlinkSync(oldPhotoPath, (err) => {
-            if (err) {
-              console.error(`Error deleting file "${oldPhotoFilename}": ${err.message}`);
-            }
-          });
+      newPhoto = result.secure_url;
+
+      if (user.photo && user.photo.includes("cloudinary.com")) {
+        const publicIdMatch = user.photo.match(/\/profile_pics\/([^\.\/]+)\./);
+        if (publicIdMatch && publicIdMatch[1]) {
+          try {
+            await cloudinary.uploader.destroy(`profile_pics/${publicIdMatch[1]}`);
+          } catch (err) {
+            console.error("Cloudinary delete error:", err);
+          }
         }
       }
 
-      try {
-        const photoPath = path.join(__dirname, "..", "uploads", "profile");
-
-        // Dynamically import imagemin and its plugins
-        const imagemin = (await import("imagemin")).default;
-        const imageminMozjpeg = (await import("imagemin-mozjpeg")).default;
-        const imageminPngquant = (await import("imagemin-pngquant")).default;
-
-        const files = await imagemin([req.files.photo[0].path], {
-          destination: photoPath,
-          plugins: [
-            imageminMozjpeg({ quality: 20 }),
-            imageminPngquant({ quality: [0.5, 0.5] }),
-          ],
-        });
-        newPhoto = process.env.URL + "/" + files[0].sourcePath;
-      } catch (error) {
-        console.error("Imagemin Error:", error);
-      }
+      fs.unlink(localPath, (err) => {
+        if (err) console.error("Error deleting local file:", err);
+      });
     }
 
     if (newPhoto) user.photo = newPhoto;
@@ -497,6 +495,7 @@ const uploadProfile = async (req, res) => {
     return res.status(500).json({ error: "Internal server error!", message: "Error updating user info" });
   }
 };
+
 module.exports = {
   getAllUsers,
   createUser,
