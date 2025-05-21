@@ -224,7 +224,6 @@ const loginUser = async (req, res) => {
     if (!req.body.email || req.body.email == null) {
       return req.user;
     }
-    consolez.log(req.user)
 
     const accessToken = generateAccessToken({ id: req.user.id });
 
