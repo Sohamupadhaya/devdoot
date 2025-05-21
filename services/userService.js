@@ -439,7 +439,7 @@ const resetPassword = async (req, res) => {
 
 const uploadProfile = async (req, res) => {
   try {
-    if(!req.files || req.files === undefined){
+    if(!req.files || req.files === undefined|| req.files.photo === undefined || req.files.photo.length === 0){
       return res.status(400).json({ error: "Bad Request", message:"Photo not found!" });
     }
     if (req.files && req.files.photo) {

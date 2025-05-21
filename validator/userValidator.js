@@ -71,7 +71,6 @@ const uploadProfileSchema = z.object({
         path: z.string(),
       })
     )
-    .optional(),
 });
 
 module.exports = {
