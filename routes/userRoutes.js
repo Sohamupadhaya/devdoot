@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const { validateLogin, authenticateLocal, authenticateJWT } = require('../config/middleware');
+const { validateLogin, authenticateLocal, authenticateJWT, authenticateLocalWithMessage } = require('../config/middleware');
 const { uploadProfileImages } = require('../utils/multer');
 const { setRedirectURIs } = require('../googleOAuth')
 
@@ -10,7 +10,7 @@ router.post('/register',userController.createUser);
 router.post('/verify',userController.verifyUser)
 router.post('/resend-otp',userController.reSendOtp)
 router.get('/getUserById/:id',userController.getUserById)
-router.post('/login',validateLogin,authenticateLocal, userController.loginUser)
+router.post('/login',validateLogin,authenticateLocalWithMessage, userController.loginUser)
 router.get('/user-details',authenticateJWT, userController.getUserDetails)
 router.put('/edit-user',authenticateJWT,userController.editUser)
 router.put('/update-password',authenticateJWT,userController.updatePassword)
