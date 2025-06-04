@@ -7,6 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 const kundaliRoutes = require("./routes/kundaliRoutes");
 const homeImages = require("./routes/homeImageRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const sequelize = require("./config/database");
 
 const app = express();
@@ -57,6 +58,7 @@ app.use("/users", userRoutes);
 app.use("/kundadlis", kundaliRoutes);
 app.use("/homeImages", homeImages);
 app.use("/events", eventRoutes);
+app.use("/admin", adminRoutes);
 
 // Catch-all route should be last
 // app.get("*", (req, res) => {
